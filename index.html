@@ -643,6 +643,63 @@ const app = initializeApp(firebaseConfig);
     if(document.getElementById('dateInput')) document.getElementById('dateInput').value = today;
     if(document.getElementById('adminDateInput')) document.getElementById('adminDateInput').value = today;
     
+
+// 綁定一鍵清空按鈕事件
+const clearAllBtn = document.getElementById('clearAllBtn');
+if (clearAllBtn) {
+  clearAllBtn.addEventListener('click', async () => {
+    // 1. 安全確認二次提示，防止誤觸
+    const confirmFirst = confirm("⚠️ 警告：這將會【永久刪除】資料庫中的所有個案紀錄！\n確定要繼續嗎？");
+    if (!confirmFirst) return;
+
+    const confirmSecond = prompt("請輸入 'CLEAR' 再次確認清空所有資料：");
+    if (confirmSecond !== "CLEAR") {
+      alert("❌ 輸入不正確，已取消清空作業。");
+      return;
+    }
+
+    try {
+      // 顯示載入狀態
+      clearAllBtn.disabled = true;
+      clearAllBtn.innerText = "⏳ 清空刪除中...";
+
+      // 匯入 Firebase 刪除所需模組
+      const { collection, getDocs, deleteDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+      
+      // 2. 取得 case_records 集合下的所有文件
+      const querySnapshot = await getDocs(collection(db, "case_records"));
+      
+      if (querySnapshot.empty) {
+        alert("ℹ️ 目前資料庫中沒有任何紀錄需要清空。");
+        return;
+      }
+
+      // 3. 逐一執行刪除作業
+      const deletePromises = [];
+      querySnapshot.forEach((documentSnap) => {
+        deletePromises.push(deleteDoc(doc(db, "case_records", documentSnap.id)));
+      });
+
+      await Promise.all(deletePromises);
+
+      alert(`🎉 成功清空共 ${deletePromises.length} 筆資料！`);
+      
+      // 4. 重新載入畫面列表（如果頁面有渲染函數，請在這裡呼叫，如 loadRecords()）
+      if (typeof loadRecords === 'function') {
+        loadRecords();
+      } else {
+        location.reload();
+      }
+
+    } catch (error) {
+      console.error("清空失敗：", error);
+      alert("❌ 清空資料失敗：" + error.message);
+    } finally {
+      clearAllBtn.disabled = false;
+      clearAllBtn.innerText = "🗑️ 一鍵清空所有紀錄";
+    }
+  });
+}
     applyListsToUI(DEFAULT_LISTS);
 
     const btn = document.getElementById('btnSaveSettings');
