@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta charset="utf-8">
+  <title>🌿 康復之家管理系統</title>
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <style id="theme-style">
+    :root, .theme-green { --primary: #3E5C45; --bg: #F4F7F5; --card-bg: #FFFFFF; --text: #2D3436; --accent: #D4A373; --border: #E0E0E0; --warning: #fcc419; --danger: #e03131; --shift-color: #2D5A8E; }
+    .theme-blue { --primary: #2D5A8E; --bg: #F0F4F8; --card-bg: #FFFFFF; --text: #2D3436; --accent: #54A0FF; --border: #D0D7DE; --shift-color: #2D5A8E; }
+    .theme-pink { --primary: #A64D79; --bg: #FFF0F5; --card-bg: #FFFFFF; --text: #2D3436; --accent: #FF85A2; --border: #F3D9FA; --shift-color: #A64D79; }
+    .theme-black { --primary: #404040; --bg: #121212; --card-bg: #1E1E1E; --text: #E0E0E0; --border: #333333; --shift-color: #555555; }
+
+    body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: var(--bg); color: var(--text); max-width: 1100px; margin: 20px auto; padding: 20px; transition: 0.3s; }
+    .card { background: var(--card-bg); padding: 24px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 16px; border: 1px solid var(--border); }
+    .tabs { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 2px solid var(--border); overflow-x: auto; }
+    .tab-btn { padding: 12px 18px; cursor: pointer; border: none; background: none; color: #888; font-weight: bold; border-bottom: 3px solid transparent; font-size: 16px; white-space: nowrap; }
+    .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: rgba(0,0,0,0.03); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .date-group-header { background: var(--primary); color: white; padding: 6px 16px; border-radius: 20px; display: inline-block; margin: 25px 0 10px 0; font-weight: bold; font-size: 14px; }
+    .record-item { background: var(--card-bg); border: 1px solid var(--border); display: flex; gap: 15px; padding: 15px; align-items: flex-start; border-radius: 12px; margin-bottom: 10px; }
+    .btn-group-left { display: flex; flex-direction: column; gap: 8px; min-width: 70px; }
+    .record-body { flex: 1; }
+    input, textarea, select { width:100%; padding:10px; margin-top:8px; border-radius:8px; border: 1px solid var(--border); box-sizing:border-box; background: var(--card-bg); color: var(--text); }
+    button { cursor:pointer; border:none; color:white; font-weight:bold; border-radius:8px; padding: 8px; transition: 0.2s; }
+    .btn-edit { background: var(--accent); }
+    .btn-delete { background: var(--danger); }
+    .btn-track-on { background: var(--warning); color: #000; }
+    .btn-track-off { background: #51cf66; }
+    .btn-save { background: var(--primary); width: 100%; padding: 12px; font-size: 16px; margin-top: 10px; }
+    .tracking-active { background: rgba(252, 196, 25, 0.1) !important; border-left: 8px solid var(--warning) !important; border-radius: 12px !important; }
+    .content-box { background: rgba(0,0,0,0.03); padding: 12px; border-radius: 8px; border-left: 4px solid var(--primary); margin: 8px 0; line-height: 1.6; white-space: pre-wrap; }
+    .tag { display: inline-block; padding: 2px 10px; border-radius: 15px; font-size: 11px; color: #fff; font-weight: bold; background: var(--primary); margin-right: 5px; }
+    .shift-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; color: #fff; background: var(--shift-color); margin-left: 5px; font-weight: bold; }
+    .log-info { font-size: 11px; color: #888; font-style: italic; margin-top: 5px; }
+    .untrack-info { font-size: 12px; color: #2b8a3e; font-weight: bold; background: #e6fcf5; padding: 4px 8px; border-radius: 6px; margin-top: 5px; display: inline-block; }
+    #loginSection input { margin-bottom: 10px; }
+/* 針對手機螢幕（螢幕寬度小於 768px）的自動排版優化 */
+@media (max-width: 768px) {
+  /* 容器與邊距縮小，充份利用手機畫面 */
+  body {
+    padding: 10px !important;
+    font-size: 15px;
+  }
+  
+  .container, .card {
+    width: 100% !important;
+    padding: 12px !important;
+    margin: 0 0 15px 0 !important;
+  }
+
+  /* 表單欄位改為直立單欄排列 */
+  .form-group, .row, .filter-group {
+    display: flex;
+    flex-direction: column !important;
+    gap: 10px;
+  }
+
+  /* 輸入框、下拉選單與按鈕在手機上放大好按 */
+  input, select, textarea, button {
+    width: 100% !important;
+    box-sizing: border-box;
+    font-size: 16px !important; /* 避免 iOS 自動放大 */
+    min-height: 44px; /* 適合手指點擊的高度 */
+  }
+
+  /* 表格自動支援橫向滾動，防止爆版超出螢幕 */
+  .table-responsive, .table-container {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  table {
+    width: 100% !important;
+    min-width: 600px; /* 保持表格基本寬度，可橫向滑動查看 */
+  }
+}
+  </style>
+</head>
+<body class="theme-green">
+
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+    <h1 id="mainTitle" style="color: var(--primary); margin:0;">🌿 康復之家管理系統</h1>
+    <div style="display:flex; gap:8px; align-items: center;">
+      <div id="userSection" style="display:none; align-items:center; gap:10px; background: rgba(0,0,0,0.05); padding: 5px 12px; border-radius: 20px;">
+        <span id="userMailText" style="font-size:14px; font-weight:bold;">👤 尚未登入</span>
+        <button type="button" onclick="window.handleLogout()" style="background:#666; font-size:12px; padding: 4px 10px;">登出</button>
+      </div>
+      
+      <button type="button" onclick="window.changeTheme('green')" style="background:#3E5C45; border:2px solid #fff; width:25px; height:25px; border-radius:50%; padding:0;"></button>
+      <button type="button" onclick="window.changeTheme('blue')" style="background:#2D5A8E; border:2px solid #fff; width:25px; height:25px; border-radius:50%; padding:0;"></button>
+      <button type="button" onclick="window.changeTheme('pink')" style="background:#A64D79; border:2px solid #fff; width:25px; height:25px; border-radius:50%; padding:0;"></button>
+      <button type="button" onclick="window.changeTheme('black')" style="background:#121212; border:2px solid #fff; width:25px; height:25px; border-radius:50%; padding:0;"></button>
+    </div>
+  </div>
+
+  <!-- 🔒 登入區塊 -->
+  <div id="loginSection" style="display:block; max-width: 350px; margin: 80px auto; padding: 30px; background: white; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center;">
+    <h2 style="margin-bottom: 25px; color: var(--primary);">系統登入</h2>
+    <input type="email" id="emailInput" placeholder="電子信箱">
+    <input type="password" id="pwInput" placeholder="密碼">
+    <button type="button" onclick="window.handleLogin()" style="background: var(--primary); color: white; width: 100%; padding: 12px; margin-top:15px; border-radius: 8px; font-size: 16px;">登入系統</button>
+    <button type="button" onclick="window.forgotPassword()" style="background:none; color: #666; text-decoration:underline; font-size: 13px; margin-top:10px;">忘記密碼？</button>
+  </div>
+
+  <!-- 🏠 主應用區塊 (未登入前隱藏) -->
+  <div id="appContent" style="display:none;">
+    <div class="tabs">
+      <button type="button" class="tab-btn active" id="tab-btn-records" onclick="window.switchTab('tab-records')">📝 個案紀錄</button>
+      <button type="button" class="tab-btn" id="tab-btn-admin" onclick="window.switchTab('tab-admin')">📋 行政事項</button>
+      <button type="button" class="tab-btn" id="tab-btn-tracking" onclick="window.switchTab('tab-tracking')">📌 待追蹤</button>
+      <button type="button" class="tab-btn" id="tab-btn-settings" onclick="window.tryAccessSettings()">⚙️ 系統設定 🔒</button>
+    </div>
+
+    <div id="tab-records" class="tab-content active">
+      <div class="card">
+        <h3 id="formTitle" style="margin:0;">新增個案紀錄</h3>
+        <form id="recordForm" onsubmit="window.handleSave(event, 'case')">
+          <input type="hidden" id="editDocId">
+          <div style="display:flex; gap:10px; flex-wrap: wrap;">
+            <div style="flex:1; min-width:120px;"><label>個案名稱</label><select id="caseSelect" required></select></div>
+            <div style="flex:1; min-width:120px;"><label>工作人員</label><select id="staffSelect" required></select></div>
+            <div style="flex:0.6; min-width:80px;"><label>班別</label>
+              <select id="shiftSelect" required><option value="D">早班 D</option><option value="E">小夜 E</option><option value="N">大夜 N</option></select>
+            </div>
+            <div style="flex:1; min-width:120px;"><label>紀錄分類</label><select id="categorySelect" required></select></div>
+            <div style="flex:1; min-width:120px;"><label>日期</label><input type="date" id="dateInput" required></div>
+          </div>
+          <textarea id="contentInput" rows="3" placeholder="請輸入內容..." required></textarea>
+          <button type="submit" class="btn-save" id="btnSaveCase">💾 儲存紀錄</button>
+        </form>
+      </div>
+
+      <div class="card search-area" style="background: var(--primary); color: white; padding: 20px; border-radius: 12px; margin-bottom: 15px;">
+        <h4 style="margin:0 0 10px 0;">🔍 搜尋與匯出</h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; align-items: end;">
+          <div><label style="font-size:12px;">選擇個案</label><select id="searchCase" style="color:black;"><option value="">--全部個案--</option></select></div>
+          <div><label style="font-size:12px;">工作人員</label><select id="searchStaff" style="color:black;"><option value="">--全部人員--</option></select></div>
+          <div><label style="font-size:12px;">內容關鍵字</label><input type="text" id="searchContent" placeholder="搜尋內容..." style="color:black;"></div>
+          <div><label style="font-size:12px;">班別</label><select id="searchShift" style="color:black;"><option value="">全部</option><option value="D">D</option><option value="E">E</option><option value="N">N</option></select></div>
+          <div><label style="font-size:12px;">特定日期</label><input type="date" id="searchDate" style="color:black;"></div>
+          <div style="display: flex; gap: 5px;">
+            <button type="button" onclick="window.handleSearch()" style="background: var(--accent); flex: 1;">🔍 篩選</button>
+            <button type="button" onclick="window.resetSearch()" style="background: #666; flex: 1;">🔄 重置</button>
+          </div>
+        </div>
+        <button type="button" onclick="window.exportToExcel()" style="background: #217346; width: 100%; margin-top: 15px; font-size: 15px;">📊 匯出目前篩選結果至 Excel</button>
+      </div>
+      <div id="caseDisplayArea"></div>
+    </div>
+
+    <div id="tab-admin" class="tab-content">
+      <div class="card">
+        <h3 id="adminFormTitle" style="margin:0;">新增行政紀錄</h3>
+        <form id="adminForm" onsubmit="window.handleSave(event, 'admin')">
+          <input type="hidden" id="editAdminId">
+          <div style="display:flex; gap:10px; flex-wrap: wrap;">
+            <div style="flex:1;"><label>行政分類</label><select id="adminCatSelect" required></select></div>
+            <div style="flex:1;"><label>人員</label><select id="adminStaffSelect" required></select></div>
+            <div style="flex:0.6;"><label>班別</label><select id="adminShiftSelect"><option value="D">D</option><option value="E">E</option><option value="N">N</option></select></div>
+            <div style="flex:1;"><label>日期</label><input type="date" id="adminDateInput" required></div>
+          </div>
+          <textarea id="adminContentInput" rows="3" required></textarea>
+          <button type="submit" class="btn-save" id="btnSaveAdmin">💾 儲存行政</button>
+        </form>
+      </div>
+      <div id="adminDisplayArea"></div>
+    </div>
+
+    <div id="tab-tracking" class="tab-content">
+      <div class="card"><h3>📌 目前待追蹤事項</h3><div id="trackingListArea"></div></div>
+    </div>
+
+    <div id="tab-settings" class="tab-content">
+      <div class="card" style="border-left: 5px solid #28a745;">
+        <h3>📤 Excel 批次匯入個案紀錄</h3>
+        <p style="font-size: 13px; color: #666; margin: 5px 0 10px 0;">請選擇包含以下標題欄位的 Excel 檔案：<code>日期</code>、<code>個案</code>、<code>工作人員</code>、<code>班別</code>、<code>分類</code>、<code>內容</code></p>
+        <input type="file" id="excelFileInput" accept=".xlsx, .xls">
+        <button type="button" onclick="window.importExcelFile()" style="background:#28a745; width:100%; margin-top:10px; font-size: 15px;">🚀 執行批次匯入</button>
+      </div>
+      <div class="card">
+        <h3>👥 名單管理</h3>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+          <div><label>個案名單</label><textarea id="caseListRaw" rows="4" placeholder="一列一個個案名稱"></textarea></div>
+          <div><label>工作人員 (格式: 姓名(Email))</label><textarea id="staffListRaw" rows="4" placeholder="王小明(ming@gmail.com)&#10;李小華(hua@gmail.com)"></textarea></div>
+          <div><label>個案分類</label><textarea id="categoryListRaw" rows="4" placeholder="一列一個分類"></textarea></div>
+          <div><label>行政分類</label><textarea id="adminCatListRaw" rows="4" placeholder="一列一個分類"></textarea></div>
+        </div>
+        <button type="button" id="btnSaveSettings" onclick="window.saveSettings()" class="btn-save">💾 儲存所有名單</button>
+      </div>
+      <div class="card" style="border: 1px solid var(--danger);">
+        <button type="button" onclick="window.clearAllData()" style="background:var(--danger); width:100%;">🗑️ 一鍵清空所有紀錄</button>
+      </div>
+    </div>
+  </div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { getFirestore, collection, addDoc, updateDoc, doc, deleteDoc, onSnapshot, query, orderBy, setDoc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  const ADMIN_PASS = "8888";
+  const firebaseConfig = {
+    apiKey: "AIzaSyCPgOwZJlXqSND57EmybL2c9gcvRZcLYCI",
+    authDomain: "test-9fbc2.firebaseapp.com",
+    projectId: "test-9fbc2",
+    storageBucket: "test-9fbc2.firebasestorage.app",
+    messagingSenderId: "318922495955",
+    appId: "1:318922495955:web:e7adda7e3511536d158126",
+    measurementId: "G-077GRYJ7EZ"
+  };
+
+const app = initializeApp(firebaseConfig); 
+  const auth = getAuth(app); 
+  // 將 '您的資料庫名稱' 替換為您目前在 Firebase 控制台看到的資料庫 ID（例如 '0921TEST' 或其他名稱）
+  const db = getFirestore(app, "default");  
+  window.allCaseRecs = []; 
+  window.allAdminRecs = []; 
+  window.currentFilteredCaseRecs = []; 
+  window.currentUserMail = "";
+
+  const DEFAULT_LISTS = {
+    cases: ["張小明", "李小華", "陳大同"],
+    staffs: ["社工師(social@gmail.com)", "護理師(nurse@gmail.com)"],
+    cats: ["日常紀錄", "特殊事件", "情緒波動", "醫療護理"],
+    adminCats: ["交班事項", "會議紀錄", "環境安全"]
+  };
+
+  // 🔑 驗證與登入邏輯
+  onAuthStateChanged(auth, u => {
+    const loginSec = document.getElementById('loginSection');
+    const userSec = document.getElementById('userSection');
+    const appCont = document.getElementById('appContent');
+    const userMailText = document.getElementById('userMailText');
+
+    if (u) {
+      window.currentUserMail = u.email;
+      if(loginSec) loginSec.style.display = 'none';
+      if(userSec) userSec.style.display = 'flex';
+      if(appCont) appCont.style.display = 'block';
+      if(userMailText) userMailText.innerText = "👤 歡迎, " + u.email;
+      
+      loadSettings();
+      loadData();
+    } else {
+      window.currentUserMail = "";
+      if(loginSec) loginSec.style.display = 'block';
+      if(userSec) userSec.style.display = 'none';
+      if(appCont) appCont.style.display = 'none';
+    }
+  });
+
+  window.handleLogin = async function() {
+    const e = document.getElementById('emailInput').value.trim();
+    const p = document.getElementById('pwInput').value.trim();
+    if(!e || !p) return alert("請輸入電子信箱與密碼！");
+    try { 
+      await signInWithEmailAndPassword(auth, e, p); 
+      alert("🎉 登入成功！");
+    } catch (err) { 
+      alert("❌ 登入失敗：\n" + err.message); 
+    }
+  };
+
+  window.handleLogout = async function() { 
+    if(confirm("確定登出系統？")) await signOut(auth); 
+  };
+
+  window.forgotPassword = async function() {
+    const e = document.getElementById('emailInput').value.trim();
+    if(!e) return alert("請先在信箱欄位輸入您的 Email");
+    try { 
+      await sendPasswordResetEmail(auth, e); 
+      alert("📧 重設密碼郵件已寄出，請至信箱查收！"); 
+    } catch(err) { 
+      alert("❌ 寄送失敗：" + err.message); 
+    }
+  };
+
+  window.switchTab = function(id) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    const target = document.getElementById(id);
+    if(target) target.classList.add('active');
+    const tabBtn = document.getElementById('tab-btn-' + id.split('-')[1]);
+    if(tabBtn) tabBtn.classList.add('active');
+  };
+
+  window.tryAccessSettings = function() {
+    const p = prompt("請輸入管理碼：");
+    if (p === ADMIN_PASS) {
+      window.switchTab('tab-settings');
+    } else if (p !== null) {
+      alert("管理碼錯誤！");
+    }
+  };
+
+  window.changeTheme = function(t) {
+    document.body.className = 'theme-' + t;
+  };
+
+  function applyListsToUI(d) {
+    const formatStaffs = (d.staffs || []).map(s => s.split('(')[0].trim());
+    const fillSelect = (id, list) => { 
+      const el = document.getElementById(id);
+      if(el && list) el.innerHTML = list.map(i => `<option value="${i}">${i}</option>`).join(''); 
+    };
+
+    fillSelect('caseSelect', d.cases || []);
+    fillSelect('staffSelect', formatStaffs);
+    fillSelect('adminStaffSelect', formatStaffs);
+    fillSelect('categorySelect', d.cats || []);
+    fillSelect('adminCatSelect', d.adminCats || []);
+
+    const sCase = document.getElementById('searchCase');
+    const sStaff = document.getElementById('searchStaff');
+    if(sCase) sCase.innerHTML = '<option value="">--全部個案--</option>' + (d.cases || []).map(i=>`<option value="${i}">${i}</option>`).join('');
+    if(sStaff) sStaff.innerHTML = '<option value="">--全部人員--</option>' + formatStaffs.map(i=>`<option value="${i}">${i}</option>`).join('');
+
+    if(document.getElementById('caseListRaw')) document.getElementById('caseListRaw').value = (d.cases || []).join('\n');
+    if(document.getElementById('staffListRaw')) document.getElementById('staffListRaw').value = (d.staffs || []).join('\n');
+    if(document.getElementById('categoryListRaw')) document.getElementById('categoryListRaw').value = (d.cats || []).join('\n');
+    if(document.getElementById('adminCatListRaw')) document.getElementById('adminCatListRaw').value = (d.adminCats || []).join('\n');
+  }
+
+  window.saveSettings = async function() {
+    try {
+      const getVal = (id) => {
+        const el = document.getElementById(id);
+        return el ? el.value.split('\n').map(s=>s.trim()).filter(Boolean) : [];
+      };
+
+      const d = {
+        cases: getVal('caseListRaw'),
+        staffs: getVal('staffListRaw'),
+        cats: getVal('categoryListRaw'),
+        adminCats: getVal('adminCatListRaw')
+      };
+
+      applyListsToUI(d);
+
+      await setDoc(doc(db, "config", "lists"), d); 
+      alert("✅ 名單設定已成功儲存至雲端！"); 
+    } catch (err) {
+      console.error("儲存失敗：", err);
+      alert("⚠️ 選單已更新至畫面，但寫入雲端失敗：\n" + err.message);
+    }
+  };
+
+  async function loadSettings() {
+    try {
+      const snap = await getDoc(doc(db, "config", "lists"));
+      if(snap.exists()){
+        applyListsToUI(snap.data());
+      } else {
+        applyListsToUI(DEFAULT_LISTS);
+      }
+    } catch (err) {
+      applyListsToUI(DEFAULT_LISTS);
+    }
+  }
+
+  function loadData() {
+    try {
+      onSnapshot(query(collection(db, "case_records"), orderBy("date", "desc")), snap => {
+        window.allCaseRecs = snap.docs.map(d => ({id:d.id, ...d.data()}));
+        window.currentFilteredCaseRecs = [...window.allCaseRecs];
+        renderAll();
+      }, err => console.warn(err));
+
+      onSnapshot(query(collection(db, "admin_records"), orderBy("date", "desc")), snap => {
+        window.allAdminRecs = snap.docs.map(d => ({id:d.id, ...d.data()}));
+        renderAll();
+      }, err => console.warn(err));
+    } catch (e) {}
+  }
+
+  function renderAll() {
+    renderList("caseDisplayArea", window.currentFilteredCaseRecs, "case");
+    renderList("adminDisplayArea", window.allAdminRecs, "admin");
+    
+    const track = window.allCaseRecs.filter(r => r.isTracked);
+    const trackArea = document.getElementById('trackingListArea');
+    if (trackArea) {
+      trackArea.innerHTML = track.map(r => `
+        <div class="card" style="border-left:10px solid var(--warning)">
+          <strong>${r.caseName}</strong> (${r.date})<p>${r.content}</p>
+          <button type="button" onclick="window.toggleTrack('${r.id}', true)" class="btn-track-off" style="width:100%">✅ 處理完畢(解列)</button>
+        </div>`).join('') || "尚無待追蹤事項";
+    }
+  }
+
+  function renderList(areaId, data, type) {
+    const el = document.getElementById(areaId);
+    if(!el) return;
+    const groups = {};
+    data.forEach(r => { if(!groups[r.date]) groups[r.date] = []; groups[r.date].push(r); });
+    let html = "";
+    Object.keys(groups).sort().reverse().forEach(date => {
+      html += `<div class="date-group-header">📅 ${date}</div>`;
+      groups[date].forEach(r => {
+        const untrackInfoHtml = r.untrackNote !== undefined ? 
+          `<div class="untrack-info">✅ 已解列: ${r.untrackNote || '（無備註）'} <small>(${r.untracker || '系統'} / ${r.untrackedAt || ''})</small></div>` : '';
+
+        html += `
+        <div class="record-item ${r.isTracked ? 'tracking-active' : ''}">
+          <div class="btn-group-left">
+            <button type="button" onclick="window.editRec('${r.id}', '${type}')" class="btn-edit">修改</button>
+            <button type="button" onclick="window.deleteRec('${r.id}', '${type}')" class="btn-delete">刪除</button>
+          </div>
+          <div class="record-body">
+            <span class="tag">${r.category || '一般'}</span> <strong>${type==='case' ? r.caseName : '行政'}</strong>
+            <small>(${r.staff})</small><span class="shift-tag">${r.shift || '-'}</span>
+            <div class="content-box">${r.content}</div>
+            ${untrackInfoHtml}
+            <div class="log-info">✍️ ${r.creator || '系統'} (${r.createdAt || ''})</div>
+          </div>
+          ${type==='case' ? `<div><button type="button" onclick="window.toggleTrack('${r.id}',${r.isTracked})" class="${r.isTracked?'btn-track-on':'btn-track-off'}">${r.isTracked?'📍追蹤中':'📌追蹤'}</button></div>` : ''}
+        </div>`;
+      });
+    });
+    el.innerHTML = html || "目前無紀錄";
+  }
+
+  window.importExcelFile = async function() {
+    const fileEl = document.getElementById('excelFileInput');
+    const file = fileEl ? fileEl.files[0] : null;
+    if (!file) return alert("請先選擇 Excel 檔案！");
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        const rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheetName]);
+        
+        if (rows.length === 0) return alert("❌ 檔案內無有效資料！");
+
+        if (confirm(`準備匯入 ${rows.length} 筆個案紀錄，確定執行嗎？`)) {
+          let count = 0;
+          for (let r of rows) {
+            await addDoc(collection(db, "case_records"), {
+              date: String(r['日期'] || new Date().toISOString().split('T')[0]),
+              caseName: String(r['個案'] || '未指定'),
+              staff: String(r['工作人員'] || '系統'),
+              shift: String(r['班別'] || 'D'),
+              category: String(r['分類'] || '一般'),
+              content: String(r['內容'] || ''),
+              creator: window.currentUserMail || '系統',
+              createdAt: new Date().toLocaleString(),
+              isTracked: false
+            });
+            count++;
+          }
+          alert(`✨ 成功匯入 ${count} 筆個案紀錄！`);
+          fileEl.value = "";
+        }
+      } catch (err) {
+        console.error("匯入失敗:", err);
+        alert("❌ 匯入失敗！請確認 Excel 欄位名稱是否包含：日期、個案、工作人員、班別、分類、內容。");
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  window.exportToExcel = function() {
+    const records = window.currentFilteredCaseRecs;
+    if(!records || records.length === 0) return alert("目前畫面上無資料可供匯出！");
+
+    if(confirm(`確定匯出畫面上這 ${records.length} 筆個案紀錄？`)) {
+      const exportData = records.map(r => ({
+        "日期": r.date || '',
+        "個案": r.caseName || '',
+        "工作人員": r.staff || '',
+        "班別": r.shift || '',
+        "分類": r.category || '',
+        "紀錄內容": r.content || '',
+        "追蹤狀態": r.isTracked ? "追蹤中" : (r.untrackNote ? "已解列" : "正常"),
+        "解列備註": r.untrackNote || '',
+        "記錄人": r.creator || '',
+        "建立時間": r.createdAt || ''
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(exportData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "個案紀錄");
+      
+      const filename = `個案紀錄匯出_${new Date().toISOString().split('T')[0]}.xlsx`;
+      XLSX.writeFile(wb, filename);
+    }
+  };
+
+  window.toggleTrack = async function(id, cur) {
+    try {
+      if(!cur) {
+        await updateDoc(doc(db, "case_records", id), { isTracked: true });
+        alert("📌 已標記為待追蹤");
+      } else { 
+        const note = prompt("請輸入解列備註 (例如：問題已處理完畢/已有改善)："); 
+        if(note !== null) {
+          await updateDoc(doc(db, "case_records", id), { 
+            isTracked: false, 
+            untrackNote: note,
+            untracker: window.currentUserMail || '系統',
+            untrackedAt: new Date().toLocaleString()
+          });
+          alert("✅ 已成功解列並儲存解列紀錄！");
+        }
+      }
+    } catch (err) {
+      alert("❌ 更新追蹤狀態失敗：" + err.message);
+    }
+  };
+
+  window.editRec = function(id, type) {
+    const isCase = type === 'case';
+    const dataList = isCase ? window.allCaseRecs : window.allAdminRecs;
+    const r = dataList.find(i => i.id === id);
+    if (!r) return alert("找不到該筆資料");
+
+    if (isCase) {
+      document.getElementById('editDocId').value = id;
+      document.getElementById('caseSelect').value = r.caseName || "";
+      document.getElementById('staffSelect').value = r.staff || "";
+      document.getElementById('shiftSelect').value = r.shift || "D";
+      document.getElementById('categorySelect').value = r.category || "";
+      document.getElementById('dateInput').value = r.date || "";
+      document.getElementById('contentInput').value = r.content || "";
+      document.getElementById('formTitle').innerText = "📝 修改個案紀錄";
+      document.getElementById('btnSaveCase').innerText = "💾 更新紀錄";
+      window.switchTab('tab-records');
+    } else {
+      document.getElementById('editAdminId').value = id;
+      document.getElementById('adminCatSelect').value = r.category || "";
+      document.getElementById('adminStaffSelect').value = r.staff || "";
+      document.getElementById('adminShiftSelect').value = r.shift || "D";
+      document.getElementById('adminDateInput').value = r.date || "";
+      document.getElementById('adminContentInput').value = r.content || "";
+      document.getElementById('adminFormTitle').innerText = "📋 修改行政紀錄";
+      document.getElementById('btnSaveAdmin').innerText = "💾 更新行政";
+      window.switchTab('tab-admin');
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  window.deleteRec = async function(id, type) {
+    if(confirm("確定刪除此筆紀錄？")) {
+      try {
+        await deleteDoc(doc(db, type==='case'?'case_records':'admin_records', id));
+        alert("✅ 刪除成功！");
+      } catch (err) {
+        alert("❌ 刪除失敗：" + err.message);
+      }
+    }
+  };
+
+  window.handleSave = async function(e, type) {
+    e.preventDefault();
+    const isCase = type === 'case';
+    const id = isCase ? document.getElementById('editDocId').value : document.getElementById('editAdminId').value;
+    const col = isCase ? "case_records" : "admin_records";
+    
+    const data = isCase ? {
+      caseName: document.getElementById('caseSelect').value, 
+      staff: document.getElementById('staffSelect').value,
+      shift: document.getElementById('shiftSelect').value, 
+      category: document.getElementById('categorySelect').value,
+      date: document.getElementById('dateInput').value, 
+      content: document.getElementById('contentInput').value
+    } : {
+      category: document.getElementById('adminCatSelect').value, 
+      staff: document.getElementById('adminStaffSelect').value,
+      shift: document.getElementById('adminShiftSelect').value, 
+      date: document.getElementById('adminDateInput').value, 
+      content: document.getElementById('adminContentInput').value
+    };
+
+    try {
+      if (id) {
+        data.lastEditor = window.currentUserMail || '系統'; 
+        data.lastModified = new Date().toLocaleString(); 
+        await updateDoc(doc(db, col, id), data); 
+        alert("💾 修改已成功更新！");
+      } else {
+        data.creator = window.currentUserMail || '系統'; 
+        data.createdAt = new Date().toLocaleString(); 
+        if(isCase) data.isTracked = false; 
+        await addDoc(collection(db, col), data); 
+        alert("💾 新增紀錄成功！");
+      }
+      
+      e.target.reset();
+      if (isCase) {
+        document.getElementById('editDocId').value = "";
+        document.getElementById('formTitle').innerText = "新增個案紀錄";
+        document.getElementById('btnSaveCase').innerText = "💾 儲存紀錄";
+      } else {
+        document.getElementById('editAdminId').value = "";
+        document.getElementById('adminFormTitle').innerText = "新增行政紀錄";
+        document.getElementById('btnSaveAdmin').innerText = "💾 儲存行政";
+      }
+      
+      const today = new Date().toISOString().split('T')[0];
+      if(isCase) document.getElementById('dateInput').value = today;
+      else document.getElementById('adminDateInput').value = today;
+
+    } catch (err) {
+      alert("❌ 儲存失敗：" + err.message);
+    }
+  };
+
+  window.handleSearch = function() {
+    const sName = document.getElementById('searchCase').value;
+    const sStaff = document.getElementById('searchStaff').value;
+    const sContent = document.getElementById('searchContent').value.toLowerCase();
+    const sShift = document.getElementById('searchShift').value;
+    const sDate = document.getElementById('searchDate').value;
+
+    window.currentFilteredCaseRecs = window.allCaseRecs.filter(r => {
+      return (!sName || r.caseName === sName) &&
+             (!sStaff || r.staff === sStaff) &&
+             (!sContent || (r.content && r.content.toLowerCase().includes(sContent))) &&
+             (!sShift || r.shift === sShift) &&
+             (!sDate || r.date === sDate);
+    });
+    renderList("caseDisplayArea", window.currentFilteredCaseRecs, "case");
+  };
+
+  window.resetSearch = function() {
+    document.getElementById('searchCase').value = "";
+    document.getElementById('searchStaff').value = "";
+    document.getElementById('searchContent').value = "";
+    document.getElementById('searchShift').value = "";
+    document.getElementById('searchDate').value = "";
+    window.currentFilteredCaseRecs = [...window.allCaseRecs];
+    renderAll();
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const today = new Date().toISOString().split('T')[0];
+    if(document.getElementById('dateInput')) document.getElementById('dateInput').value = today;
+    if(document.getElementById('adminDateInput')) document.getElementById('adminDateInput').value = today;
+    
+    applyListsToUI(DEFAULT_LISTS);
+
+    const btn = document.getElementById('btnSaveSettings');
+    if (btn) btn.addEventListener('click', window.saveSettings);
+  });
+</script>
+</body>
+</html>
