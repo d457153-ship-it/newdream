@@ -5,12 +5,13 @@
   <meta charset="utf-8">
   <title>🌿 康復之家管理系統</title>
   <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-  <style id="theme-style">
+ <style id="theme-style">
     :root, .theme-green { --primary: #3E5C45; --bg: #F4F7F5; --card-bg: #FFFFFF; --text: #2D3436; --accent: #D4A373; --border: #E0E0E0; --warning: #fcc419; --danger: #e03131; --shift-color: #2D5A8E; }
     .theme-blue { --primary: #2D5A8E; --bg: #F0F4F8; --card-bg: #FFFFFF; --text: #2D3436; --accent: #54A0FF; --border: #D0D7DE; --shift-color: #2D5A8E; }
     .theme-pink { --primary: #A64D79; --bg: #FFF0F5; --card-bg: #FFFFFF; --text: #2D3436; --accent: #FF85A2; --border: #F3D9FA; --shift-color: #A64D79; }
     .theme-black { --primary: #404040; --bg: #121212; --card-bg: #1E1E1E; --text: #E0E0E0; --border: #333333; --shift-color: #555555; }
-
+    .theme-yellow { --primary: #D97706; --bg: #FEFCE8; --card-bg: #FFFFFF; --text: #2D3436; --accent: #F59E0B; --border: #FEF08A; --shift-color: #B45309; }
+ 
     body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: var(--bg); color: var(--text); max-width: 1100px; margin: 20px auto; padding: 20px; transition: 0.3s; }
     .card { background: var(--card-bg); padding: 24px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 16px; border: 1px solid var(--border); }
     .tabs { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 2px solid var(--border); overflow-x: auto; }
@@ -92,6 +93,7 @@
       <button type="button" onclick="window.changeTheme('blue')" style="background:#2D5A8E; border:2px solid #fff; width:25px; height:25px; border-radius:50%; padding:0;"></button>
       <button type="button" onclick="window.changeTheme('pink')" style="background:#A64D79; border:2px solid #fff; width:25px; height:25px; border-radius:50%; padding:0;"></button>
       <button type="button" onclick="window.changeTheme('black')" style="background:#121212; border:2px solid #fff; width:25px; height:25px; border-radius:50%; padding:0;"></button>
+ <button type="button" onclick="window.changeTheme('yellow')" style="background:#D97706; border:2px solid #fff; width:25px; height:25px; border-radius:50%; padding:0;"></button>  
     </div>
   </div>
 
